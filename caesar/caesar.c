@@ -7,8 +7,10 @@ transforming the letters into numbers, according to the scheme,
 A -> 0, B -> 1, ..., Z -> 25."[1]
 
 
-Outputs ciphertext corresponding to a given message and key
-using the Caesar Cipher.
+Outputs ciphertext or a message corresponding to a given input and key
+using the Caesar Cipher. The output is determined by the flag passed to the
+program. '-e' for encryption, '-d' for decryption. If neither is provided
+encryption is performed.
 
 The message is any string provided as a commandline argument.
 The program ignores whitespace and non-alphabetic characters.
@@ -16,7 +18,7 @@ Output is in uppercase.
 
 The key is a number indicating the amount of characters to shift
 the alphabet for use in the transpositional cipher.
-The key is given as an integer string and converted using atoi().
+The key is given as a positive integer string and converted using atoi().
 
 Sources:
 [1] https://en.wikipedia.org/wiki/Caesar_cipher
@@ -28,36 +30,131 @@ Sources:
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+
+/* Flags */
+// Encrypt input
+int encrypt_flag = 0;
+// Decrypt input
+int decrypt_flag = 0;
+// Strip non-alphabetic characters from output
+int strip_flag = 0;
+// Remove whitespace from output (fold spaces)
+int fold_flag = 0;
+// Error in argument list
+int error_flag = 0;
+
+/*
+Encrypts the message using the Caesar Cipher
+
+Parameters:
+    char* message: the string that will be encrypted
+    int key: the key / number of letter shifts to perform for the cipher
+Returns:
+    char*: The resulting ciphertext string
+*/
+char* encrypt(char* message, int key);
+
+/*
+Decrypts the ciphertext using the Caesar Cipher encryption and a modified key
+
+Parameters:
+    char* ciphertext: the string that will be decrypted
+    int key: the key / number of letter shifts to perform for the decryption
+Returns:
+    char*: the resulting message string
+
+*/
+char* decrypt(char* ciphertext, int key);
+
+/*
+Euclidian modulo operator
+In C, if either operand of the % sign is negative we cannot rely
+on a positive result
+
+Parameters:
+    int a: left-side operand
+    int b: right-side operand
+Returns:
+    int: result of a mod b
+
+Source: https://stackoverflow.com/a/4003287
+*/
+int mod (int a, int b);
 
 int main(int argc, char* argv[])
 {
-    // Plaintext message variable
-    char* message;
+    char* input;
     int key;
-    char* ciphertext;
+    char* output;
 
-    // Must be 3 command line arguments
-    // program name, message character, key
-    if (argc != 3)
-    {
-        printf("Usage: ./caesar message key\n");
-        printf("message is 1 alphabetic character\n");
-        printf("key is an integer indicating the cipher shift\n");
-        return 1;
-    }
+    /* -- Handle Options -- */
+    // Current option character
+    int c;
+
+    // Iterate through provided options
+	while((c = getopt(argc, argv, "edsf")) != -1)
+	{
+		switch(c)
+		{
+			case 'e':
+				if (decrypt_flag)
+					error_flag++;
+				else
+					encrypt_flag++;
+				break;
+			case 'd':
+				if (encrypt_flag)
+					error_flag++;
+				else
+					decrypt_flag++;
+				break;
+			case 's':
+				strip_flag++;
+				break;
+			case 'f':
+				fold_flag++;
+				break;
+			case '?':
+			fprintf(stderr, "Unrecognized option: '-%c'\n", optopt);
+			error_flag++;
+		}
+	}
+	if (error_flag)
+	{
+		fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] input key\n");
+		exit(1);
+	}
 
     // Set variables to arguments
-    // message is the first argument
-    message = malloc(strlen(argv[1]) + 1);
-    strcpy(message, argv[1]);
+    input = malloc(strlen(argv[optind]) + 1);
+    strcpy(input, argv[optind]);
 
     // key should be converted from string to int
-    key = atoi(argv[2]);
-
-    // Allocate memory for ciphertext string
-    ciphertext = malloc(strlen(message) + 1);
+    key = atoi(argv[optind + 1]);
 
     // Perform encryption
+    output = (decrypt_flag) ? decrypt(input, key) : encrypt(input, key);
+
+    // Print input and output
+    printf("%s\n", output);
+
+    // Free string memory
+    free(input);
+    free(output);
+
+    return 0;
+}
+
+char* encrypt(char* message, int key)
+{
+    // Allocate space for the string
+    // length of message + 1 is used to accompany the '\0' character
+    char* ciphertext = malloc(strlen(message) + 1);
+
+    // Temporary character
+    char c;
+
     for (int i = 0; i < strlen(message); i++)
     {
         // If character is not alphabetic
@@ -68,20 +165,39 @@ int main(int argc, char* argv[])
         }
         else
         {
-            // Add key shift
+            c = toupper(message[i]);
+            // Add key shift (using remainder in case of overflow)
+            c += (key % 26);
             // Normalize letter to 0-25 by subtracting ASCII 'A'
+            c -= 'A';
             // Mod character by 26 to produce letter index [0 - 25]
+            c = mod(c, 26);
             // Return to ASCII letter representation by adding 'A'
-            ciphertext[i] = ((toupper(message[i]) + key - 'A') % 26) + 'A';
+            c += 'A';
+
+            ciphertext[i] = c;
         }
     }
+    return ciphertext;
+}
 
-    // Output message and ciphertext
-    printf("m = %s, c = %s\n", message, ciphertext);
+char* decrypt(char* ciphertext, int key)
+{
+    /* Since the decryption algorithm is the same as the encryption,
+        besides the key being negative, we can use the encrypt function
+        with a slightly different key argument. */
+    return encrypt(ciphertext, -key);
+}
 
-    // Free string memory
-    free(message);
-    free(ciphertext);
+int mod(int a, int b)
+{
+    if(b < 0)
+        return mod(a, -b);
 
-    return 0;
+    int ret = a % b;
+
+    if(ret < 0)
+        ret+=b;
+
+    return ret;
 }
