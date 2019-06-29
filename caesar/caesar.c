@@ -20,6 +20,13 @@ The key is a number indicating the amount of characters to shift
 the alphabet for use in the transpositional cipher.
 The key is given as a positive integer string and converted using atoi().
 
+Options:
+    -e: Encrypt input using key
+    -d: Decrypt input using key
+    -s: Strip non-alphabetic characters from output
+    -f: Remove whitespace from output (fold spaces)
+    -r: Retain letter case in output
+
 Sources:
 [1] https://en.wikipedia.org/wiki/Caesar_cipher
 [2] http://mathworld.wolfram.com/CaesarsMethod.html
@@ -33,15 +40,11 @@ Sources:
 #include <unistd.h>
 
 /* Flags */
-// Encrypt input
 int encrypt_flag = 0;
-// Decrypt input
 int decrypt_flag = 0;
-// Strip non-alphabetic characters from output
 int strip_flag = 0;
-// Remove whitespace from output (fold spaces)
 int fold_flag = 0;
-// Error in argument list
+int retain_case_flag = 0;
 int error_flag = 0;
 
 /*
@@ -125,7 +128,7 @@ void handle_options(int argc, char* argv[])
     int c;
 
     // Iterate through provided options
-    while((c = getopt(argc, argv, "edsf")) != -1)
+    while((c = getopt(argc, argv, "edsfr")) != -1)
     {
         switch(c)
         {
@@ -147,6 +150,9 @@ void handle_options(int argc, char* argv[])
             case 'f':
                 fold_flag++;
                 break;
+            case 'r':
+                retain_case_flag++;
+                break;
             case '?':
             fprintf(stderr, "Unrecognized option: '-%c'\n", optopt);
             error_flag++;
@@ -154,7 +160,7 @@ void handle_options(int argc, char* argv[])
     }
     if (error_flag)
     {
-        fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] input key\n");
+        fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] [-r] input key\n");
         exit(1);
     }
 }
@@ -168,6 +174,8 @@ char* encrypt(char* message, int key)
     // Temporary character
     char c;
     int i;
+
+    // Offset to character insertion index
     int offset = 0;
 
     for (i = 0; i < strlen(message); i++)
@@ -192,6 +200,24 @@ char* encrypt(char* message, int key)
             // Put current character into ciphertext unchanged
             ciphertext[i - offset] = message[i];
         }
+        // Encrypt retaining case
+        else if (retain_case_flag)
+        {
+            c = message[i];
+            // Either 'A' or 'a' matching case of c
+            char alpha_operand = (isupper(c)) ? 'A' : 'a';
+            // Add key shift (using remainder in case of overflow)
+            c += (key % 26);
+            // Normalize letter to 0-25 by subtracting ASCII 'A'
+            c -= alpha_operand;
+            // Mod character by 26 to produce letter index [0 - 25]
+            c = mod(c, 26);
+            // Return to ASCII letter representation by adding 'A'
+            c += alpha_operand;
+
+            ciphertext[i - offset] = c;
+        }
+        // Encrypt with all caps
         else
         {
             c = toupper(message[i]);
