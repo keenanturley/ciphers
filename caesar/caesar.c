@@ -9,26 +9,31 @@ http://mathworld.wolfram.com/CaesarsMethod.html
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 
-int main(void)
+int main(int argc, char* argv[])
 {
     // Plaintext message variable
     char message;
     int key;
     char ciphertext;
 
-    // Introduce program
-    printf("-- Caesar Cipher --\n");
-    printf("Encrypts plaintext letter to ciphertext letter\n");
-    printf("using a given key / rotation shift.\n\n");
+    // Must be 3 command line arguments
+    // program name, message character, key
+    if (argc != 3)
+    {
+        printf("Usage: ./caesar message key\n");
+        printf("message is 1 alphabetical character\n");
+        printf("key is an integer indicating the cipher shift\n");
+        return 1;
+    }
 
-    // Get input from user
-    printf("Enter a lowercase letter to encrypt: ");
-    scanf("%c", &message);
+    // Set variables to arguments
+    // message is the first character of the first argument
+    message = argv[1][0];
 
-    // Get key from user
-    printf("Enter an integer key: ");
-    scanf("%d", &key);
+    // key should be converted from string to int
+    key = atoi(argv[2]);
 
     // Perform encryption
     // Normalize letter to 0-25 by subtracting ASCII 'a' (dec 97)
@@ -43,7 +48,6 @@ int main(void)
 
     // Output both characters
     printf("m = %c, c = %c\n", message, ciphertext);
-
 
     return 0;
 }
