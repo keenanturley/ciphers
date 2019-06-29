@@ -154,14 +154,30 @@ char* encrypt(char* message, int key)
 
     // Temporary character
     char c;
+    int i;
+    int offset = 0;
 
-    for (int i = 0; i < strlen(message); i++)
+    for (i = 0; i < strlen(message); i++)
     {
         // If character is not alphabetic
         if (!isalpha(message[i]))
         {
+            /*
+            If the strip flag is on and the character is not a space, don't
+            put it in the ciphertext.
+            Also, if the fold flag is on and the character is a space, don't
+            put it in the ciphertext.
+            Do not do this for the null terminator.
+            */
+            if (message[i] != '\0' &&
+                ((strip_flag && !isspace(message[i])) ||
+                (fold_flag && isspace(message[i]))))
+            {
+                offset++;
+                continue;
+            }
             // Put current character into ciphertext unchanged
-            ciphertext[i] = message[i];
+            ciphertext[i - offset] = message[i];
         }
         else
         {
@@ -175,9 +191,11 @@ char* encrypt(char* message, int key)
             // Return to ASCII letter representation by adding 'A'
             c += 'A';
 
-            ciphertext[i] = c;
+            ciphertext[i - offset] = c;
         }
     }
+    // Add null terminator, i will be one more than the
+    ciphertext[i] = '\0';
     return ciphertext;
 }
 
