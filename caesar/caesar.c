@@ -45,6 +45,15 @@ int fold_flag = 0;
 int error_flag = 0;
 
 /*
+Handles the command-line arguments and sets global flags based on them
+
+Parameters:
+    int argc: argument count from main() arguments
+    char* argv[]: argument vector from main() arguments
+*/
+void handle_options(int argc, char* argv[]);
+
+/*
 Encrypts the message using the Caesar Cipher
 
 Parameters:
@@ -88,7 +97,30 @@ int main(int argc, char* argv[])
     int key;
     char* output;
 
-    /* -- Handle Options -- */
+    handle_options(argc, argv);
+
+    // Set variables to arguments
+    input = malloc(strlen(argv[optind]) + 1);
+    strcpy(input, argv[optind]);
+
+    // key should be converted from string to int
+    key = atoi(argv[optind + 1]);
+
+    // Perform encryption
+    output = (decrypt_flag) ? decrypt(input, key) : encrypt(input, key);
+
+    // Print input and output
+    printf("%s\n", output);
+
+    // Free string memory
+    free(input);
+    free(output);
+
+    return 0;
+}
+
+void handle_options(int argc, char* argv[])
+{
     // Current option character
     int c;
 
@@ -125,25 +157,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] input key\n");
         exit(1);
     }
-
-    // Set variables to arguments
-    input = malloc(strlen(argv[optind]) + 1);
-    strcpy(input, argv[optind]);
-
-    // key should be converted from string to int
-    key = atoi(argv[optind + 1]);
-
-    // Perform encryption
-    output = (decrypt_flag) ? decrypt(input, key) : encrypt(input, key);
-
-    // Print input and output
-    printf("%s\n", output);
-
-    // Free string memory
-    free(input);
-    free(output);
-
-    return 0;
 }
 
 char* encrypt(char* message, int key)
