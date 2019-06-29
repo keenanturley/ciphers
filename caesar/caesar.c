@@ -93,38 +93,38 @@ int main(int argc, char* argv[])
     int c;
 
     // Iterate through provided options
-	while((c = getopt(argc, argv, "edsf")) != -1)
-	{
-		switch(c)
-		{
-			case 'e':
-				if (decrypt_flag)
-					error_flag++;
-				else
-					encrypt_flag++;
-				break;
-			case 'd':
-				if (encrypt_flag)
-					error_flag++;
-				else
-					decrypt_flag++;
-				break;
-			case 's':
-				strip_flag++;
-				break;
-			case 'f':
-				fold_flag++;
-				break;
-			case '?':
-			fprintf(stderr, "Unrecognized option: '-%c'\n", optopt);
-			error_flag++;
-		}
-	}
-	if (error_flag)
-	{
-		fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] input key\n");
-		exit(1);
-	}
+    while((c = getopt(argc, argv, "edsf")) != -1)
+    {
+        switch(c)
+        {
+            case 'e':
+                if (decrypt_flag)
+                    error_flag++;
+                else
+                    encrypt_flag++;
+                break;
+            case 'd':
+                if (encrypt_flag)
+                    error_flag++;
+                else
+                    decrypt_flag++;
+                break;
+            case 's':
+                strip_flag++;
+                break;
+            case 'f':
+                fold_flag++;
+                break;
+            case '?':
+            fprintf(stderr, "Unrecognized option: '-%c'\n", optopt);
+            error_flag++;
+        }
+    }
+    if (error_flag)
+    {
+        fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] input key\n");
+        exit(1);
+    }
 
     // Set variables to arguments
     input = malloc(strlen(argv[optind]) + 1);
