@@ -127,6 +127,10 @@ int main(int argc, char* argv[])
             // Free the string, since it's on the heap
             free(output);
         }
+
+        // Free input before exiting early
+        free(input);
+
         // Done outputting, exit program
         exit(0);
     }
@@ -188,7 +192,7 @@ void handle_options(int argc, char* argv[])
     }
     if (error_flag)
     {
-        fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] [-r] input key\n");
+        fprintf(stderr, "usage: ./caesar [-e|-d] [-s] [-f] [-r] [-a] input key\n");
         exit(1);
     }
 }
