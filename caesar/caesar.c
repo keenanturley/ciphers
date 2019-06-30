@@ -26,6 +26,7 @@ Options:
     -s: Strip non-alphabetic characters from output
     -f: Remove whitespace from output (fold spaces)
     -r: Retain letter case in output
+    -a: show output for all keys (1-25)
 
 Sources:
 [1] https://en.wikipedia.org/wiki/Caesar_cipher
@@ -45,6 +46,7 @@ int decrypt_flag = 0;
 int strip_flag = 0;
 int fold_flag = 0;
 int retain_case_flag = 0;
+int all_output_flag = 0;
 int error_flag = 0;
 
 /*
@@ -104,7 +106,30 @@ int main(int argc, char* argv[])
 
     // Set variables to arguments
     input = malloc(strlen(argv[optind]) + 1);
+    if (input == NULL)
+    {
+        fprintf(stderr, "Failed to allocate space for input string\n");
+        exit(1);
+    }
     strcpy(input, argv[optind]);
+
+    // If printing out all possible output, key is not required
+    if (all_output_flag)
+    {
+        // loop through each key (1-25)
+        for (key = 1; key < 26; key++)
+        {
+            output = (decrypt_flag) ? decrypt(input, key) : encrypt(input, key);
+
+            // Print the key and cipher / plaintext
+            printf("ROT%d:\t%s\n", key, output);
+
+            // Free the string, since it's on the heap
+            free(output);
+        }
+        // Done outputting, exit program
+        exit(0);
+    }
 
     // key should be converted from string to int
     key = atoi(argv[optind + 1]);
@@ -128,7 +153,7 @@ void handle_options(int argc, char* argv[])
     int c;
 
     // Iterate through provided options
-    while((c = getopt(argc, argv, "edsfr")) != -1)
+    while((c = getopt(argc, argv, "edsfra")) != -1)
     {
         switch(c)
         {
@@ -153,6 +178,9 @@ void handle_options(int argc, char* argv[])
             case 'r':
                 retain_case_flag++;
                 break;
+            case 'a':
+                all_output_flag++;
+                break;
             case '?':
             fprintf(stderr, "Unrecognized option: '-%c'\n", optopt);
             error_flag++;
@@ -170,6 +198,11 @@ char* encrypt(char* message, int key)
     // Allocate space for the string
     // length of message + 1 is used to accompany the '\0' character
     char* ciphertext = malloc(strlen(message) + 1);
+    if (ciphertext == NULL)
+    {
+        fprintf(stderr, "Failed to allocate space for ciphertext string\n");
+        exit(1);
+    }
 
     // Temporary character
     char c;
