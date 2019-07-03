@@ -1,2 +1,5 @@
 # Executable files created with gcc
 **/a.out
+
+# vscode configuration
+.vscode
