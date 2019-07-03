@@ -94,6 +94,9 @@ int main(int argc, char* argv[])
     // Print out ciphertext
     printf("%s\n", ciphertext);
 
+    // Free ciphertext before exiting to prevent memory leak
+    free(ciphertext);
+
     return 0;
 }
 
